@@ -44,7 +44,8 @@ def get_all_uris(data: ET.Element):
                     newname = ' '.join(set(newname.split()))
                     uri = child4.attrib['uri']
                     alluris[uri] = newname
-        return alluris
+    
+    return alluris
 
 
 def get_data(uri):
@@ -127,9 +128,9 @@ def job():
 
     # send an entry
     client.write_points([{
-        "measurement": "eta",
-        "time": timestamp,
-        "fields": {to_camel(k): v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
+       "measurement": "eta",
+       "time": timestamp,
+       "fields": {to_camel(k): v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
     }])
     print("send data")
 
