@@ -94,6 +94,13 @@ def check_influx():
     client.close()
 
 
+def to_camel(text):
+    """
+    to convert the initial variable strings
+    """
+    return ''.join(x.capitalize() or ' ' for x in text.split(' '))
+
+
 def job():
     """
     a single update job
@@ -122,7 +129,7 @@ def job():
     client.write_points([{
         "measurement": "eta",
         "time": timestamp,
-        "fields": {k: v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
+        "fields": {to_camel(k): v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
     }])
     print("send data")
 

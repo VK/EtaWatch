@@ -1,4 +1,4 @@
-# EtaWatch
+# **EtaWatch**
 
 ![Docker Image EtaWatch](https://github.com/VK/EtaWatch/workflows/Docker%20Image%20EtaWatch/badge.svg?branch=master)
 
