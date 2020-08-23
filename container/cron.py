@@ -18,6 +18,12 @@ etaUrl = os.environ["ETA_URL"]
 influxHost = os.environ["INFLUX_HOST"]
 
 
+def to_camel(text):
+    """
+    to convert the initial variable strings
+    """
+    return ''.join(x.capitalize() or ' ' for x in text.split(' '))
+
 
 def get_all_uris(data: ET.Element):
     """
@@ -31,20 +37,20 @@ def get_all_uris(data: ET.Element):
                 newname = child1.attrib['name'] + " "+child2.attrib['name']
                 newname = ' '.join(set(newname.split()))
                 uri = child2.attrib['uri']
-                alluris[uri] = newname
+                alluris[to_camel(newname)] = uri
             for child3 in child2:
                 newname = child1.attrib['name']+" " + \
                     child2.attrib['name']+" "+child3.attrib['name']
                 newname = ' '.join(set(newname.split()))
                 uri = child3.attrib['uri']
-                alluris[uri] = newname
+                alluris[to_camel(newname)] = uri
                 for child4 in child3:
                     newname = child1.attrib['name']+" "+child2.attrib['name'] + \
                         " "+child3.attrib['name'] + " "+child4.attrib['name']
                     newname = ' '.join(set(newname.split()))
                     uri = child4.attrib['uri']
-                    alluris[uri] = newname
-    
+                    alluris[to_camel(newname)] = uri
+
     return alluris
 
 
@@ -95,13 +101,6 @@ def check_influx():
     client.close()
 
 
-def to_camel(text):
-    """
-    to convert the initial variable strings
-    """
-    return ''.join(x.capitalize() or ' ' for x in text.split(' '))
-
-
 def job():
     """
     a single update job
@@ -123,33 +122,27 @@ def job():
 
     # collect data
     timestamp = str(datetime.datetime.utcnow())
-    alldata = {k: v for k, v in {value: get_data(
-        key) for key, value in uris.items()}.items() if v}
+    alldata = {k: v for k, v in {name: get_data(uri) for name, uri in uris.items()}.items() if v}
 
     # send an entry
     client.write_points([{
-       "measurement": "eta",
-       "time": timestamp,
-       "fields": {to_camel(k): v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
+        "measurement": "eta",
+        "time": timestamp,
+        "fields": {to_camel(k): v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
     }])
     print("send data")
 
     client.close()
 
 
-
 def main():
     check_influx()
 
     schedule.every(1).minutes.do(job)
-    
+
     while 1:
         schedule.run_pending()
         time.sleep(1)
-    
-    
-
-
 
 
 if __name__ == "__main__":
