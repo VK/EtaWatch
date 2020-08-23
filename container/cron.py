@@ -87,6 +87,9 @@ def get_data(uri):
         output['unit'] = data[0].attrib['unit']
         output['scaleFactor'] = float(data[0].attrib['scaleFactor'])
 
+    print("# all uris:")
+    print(output)
+
     return output
 
 
@@ -128,7 +131,7 @@ def job():
     client.write_points([{
         "measurement": "eta",
         "time": timestamp,
-        "fields": {to_camel(k): v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
+        "fields": {k: v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
     }])
     print("send data")
 
