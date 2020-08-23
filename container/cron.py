@@ -51,6 +51,10 @@ def get_all_uris(data: ET.Element):
                     uri = child4.attrib['uri']
                     alluris[to_camel(newname)] = uri
 
+
+    print("# all uris:")
+    print(alluris)                    
+
     return alluris
 
 
@@ -87,8 +91,6 @@ def get_data(uri):
         output['unit'] = data[0].attrib['unit']
         output['scaleFactor'] = float(data[0].attrib['scaleFactor'])
 
-    print("# all uris:")
-    print(output)
 
     return output
 
