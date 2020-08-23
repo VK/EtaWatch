@@ -52,8 +52,8 @@ def get_all_uris(data: ET.Element):
                     alluris[to_camel(newname)] = uri
 
 
-    print("# all uris:")
-    print(json.dumps(alluris, indent=2))
+    #print("# all uris:")
+    #print(json.dumps(alluris, indent=2))
     return alluris
 
 
