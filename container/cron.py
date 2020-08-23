@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import json
+
 # to run a permanent job
 import schedule
 import time
@@ -22,7 +24,7 @@ def to_camel(text):
     """
     to convert the initial variable strings
     """
-    return ''.join(x.capitalize() or ' ' for x in text.split(' '))
+    return '>>'.join(''.join(y.capitalize() or ' ' for y in x.split(' ')) or '>>' for x in text.split('>>'))
 
 
 def get_all_uris(data: ET.Element):
@@ -34,27 +36,24 @@ def get_all_uris(data: ET.Element):
     for child1 in data:
         for child2 in child1:
             if child2.attrib['uri'].count('/') > 2:
-                newname = child1.attrib['name'] + " "+child2.attrib['name']
-                newname = ' '.join(set(newname.split()))
+                newname = child1.attrib['name'] + ">>"+child2.attrib['name']
                 uri = child2.attrib['uri']
                 alluris[to_camel(newname)] = uri
             for child3 in child2:
-                newname = child1.attrib['name']+" " + \
-                    child2.attrib['name']+" "+child3.attrib['name']
-                newname = ' '.join(set(newname.split()))
+                newname = child1.attrib['name']+">>" + \
+                    child2.attrib['name']+">>"+child3.attrib['name']
                 uri = child3.attrib['uri']
                 alluris[to_camel(newname)] = uri
                 for child4 in child3:
-                    newname = child1.attrib['name']+" "+child2.attrib['name'] + \
-                        " "+child3.attrib['name'] + " "+child4.attrib['name']
-                    newname = ' '.join(set(newname.split()))
+                    newname = child1.attrib['name']+">>"+child2.attrib['name'] + \
+                        ">>" + child3.attrib['name'] + \
+                        ">>"+child4.attrib['name']
                     uri = child4.attrib['uri']
                     alluris[to_camel(newname)] = uri
 
 
     print("# all uris:")
-    print(alluris)                    
-
+    print(json.dumps(alluris, indent=2))
     return alluris
 
 
