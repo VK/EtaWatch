@@ -5,4 +5,4 @@ RUN pip install --no-cache-dir influxdb schedule
 WORKDIR /app
 COPY cron.py /app/
 
-CMD [ "python3", "./app/cron.py" ]
+CMD [ "python3", "/app/cron.py" ]
