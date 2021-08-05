@@ -109,6 +109,12 @@ def job():
     """
     a single update job
     """
+    
+    try:
+        check_influx()
+    except:
+        print("ERROR: Influx DB not available!")
+        return -5
 
     # query eta for all uris
     res = requests.get(etaUrl+"/user/menu")
@@ -116,32 +122,35 @@ def job():
     if (res.status_code != 200):
         print("ERROR: no connection to {}".format(etaUrl))
         return -10
+    
+    try:
+        data = ET.fromstring(res.content)
+        uris = get_all_uris(data[0])
 
-    data = ET.fromstring(res.content)
-    uris = get_all_uris(data[0])
+        # connect to influxdb
+        client = InfluxDBClient(host=influxHost, port=8086)
+        client.switch_database('eta')
 
-    # connect to influxdb
-    client = InfluxDBClient(host=influxHost, port=8086)
-    client.switch_database('eta')
+        # collect data
+        timestamp = str(datetime.datetime.utcnow())
+        alldata = {k: v for k, v in {name: get_data(uri) for name, uri in uris.items()}.items() if v}
 
-    # collect data
-    timestamp = str(datetime.datetime.utcnow())
-    alldata = {k: v for k, v in {name: get_data(uri) for name, uri in uris.items()}.items() if v}
+        # send an entry
+        client.write_points([{
+            "measurement": "eta",
+            "time": timestamp,
+            "fields": {k: v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
+        }])
+        print("send data")
 
-    # send an entry
-    client.write_points([{
-        "measurement": "eta",
-        "time": timestamp,
-        "fields": {k: v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
-    }])
-    print("send data")
-
-    client.close()
+        client.close()
+    except:
+        print("ERROR: Not able to add new values.")
+        return -15
 
 
 def main():
-    check_influx()
-
+    
     schedule.every(1).minutes.do(job)
 
     while 1:
