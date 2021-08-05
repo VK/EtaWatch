@@ -3,8 +3,8 @@ name: Docker Image EtaWatch
 on:
   push:
     branches: [ master ]
-  schedule:
-    - cron: '0 2 16 * *'    
+#   schedule:
+#     - cron: '0 2 16 * *'
 
 jobs:
 
