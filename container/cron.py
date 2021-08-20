@@ -15,9 +15,9 @@ import os
 import datetime
 from influxdb import InfluxDBClient
 
-etaUrl = os.environ["ETA_URL"]
+etaUrl = os.environ.get("ETA_URL", "http://eta:8080")
 
-influxHost = os.environ["INFLUX_HOST"]
+influxHost = os.environ.get("INFLUX_HOST", "influxdb")
 
 
 def to_camel(text):
@@ -109,18 +109,25 @@ def job():
     """
     a single update job
     """
+
+    now = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     
     try:
         check_influx()
     except:
-        print("ERROR: Influx DB not available!")
+        print(f"[{now}] ERROR: Influx DB not available!")
         return -5
 
     # query eta for all uris
-    res = requests.get(etaUrl+"/user/menu")
+    try:
+        res = requests.get(etaUrl+"/user/menu")
+    except:
+        print(f"[{now}] ERROR: no connection to {etaUrl}")
+        return -10        
+    
 
     if (res.status_code != 200):
-        print("ERROR: no connection to {}".format(etaUrl))
+        print(f"[{now}] ERROR: no connection to {etaUrl}")
         return -10
     
     try:
@@ -141,7 +148,7 @@ def job():
             "time": timestamp,
             "fields": {k: v['val'] if v['type'] == 'num' else v['text'] for k, v in alldata.items()}
         }])
-        print("send data")
+        print(f"[{now}] send data")
 
         client.close()
     except:
