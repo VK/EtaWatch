@@ -3,7 +3,7 @@
 import json
 
 # to run a permanent job
-import schedule
+from apscheduler.schedulers.background import BackgroundScheduler
 import time
 
 # to load the current variables from eta
@@ -152,17 +152,22 @@ def job():
 
         client.close()
     except:
-        print("ERROR: Not able to add new values.")
+        print(f"[{now}] ERROR: Not able to add new values.")
         return -15
 
 
 def main():
-    
-    schedule.every(1).minutes.do(job)
+    print('Init EtaWatch')
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(job, 'interval', minutes=1)
+    scheduler.start()
+    print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
-    while 1:
-        schedule.run_pending()
-        time.sleep(1)
+    try:
+        while True:
+            time.sleep(2)
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
 
 
 if __name__ == "__main__":
