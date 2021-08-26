@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+from logging import error
 
 # to run a permanent job
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -51,8 +52,7 @@ def get_all_uris(data: ET.Element):
                     uri = child4.attrib['uri']
                     alluris[to_camel(newname)] = uri
 
-
-    #print("# all uris:")
+    # print("# all uris:")
     #print(json.dumps(alluris, indent=2))
     return alluris
 
@@ -90,7 +90,6 @@ def get_data(uri):
         output['unit'] = data[0].attrib['unit']
         output['scaleFactor'] = float(data[0].attrib['scaleFactor'])
 
-
     return output
 
 
@@ -105,17 +104,24 @@ def check_influx():
     client.close()
 
 
+errorcount = 0
+lastsent = datetime.datetime.now()
+
+
 def job():
     """
     a single update job
     """
 
+    global errorcount, lastsent
+
     now = datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-    
+
     try:
         check_influx()
     except:
         print(f"[{now}] ERROR: Influx DB not available!")
+        errorcount = errorcount + 1
         return -5
 
     # query eta for all uris
@@ -123,13 +129,14 @@ def job():
         res = requests.get(etaUrl+"/user/menu")
     except:
         print(f"[{now}] ERROR: no connection to {etaUrl}")
-        return -10        
-    
+        errorcount = errorcount + 1
+        return -10
 
     if (res.status_code != 200):
         print(f"[{now}] ERROR: no connection to {etaUrl}")
+        errorcount = errorcount + 1
         return -10
-    
+
     try:
         data = ET.fromstring(res.content)
         uris = get_all_uris(data[0])
@@ -140,7 +147,8 @@ def job():
 
         # collect data
         timestamp = str(datetime.datetime.utcnow())
-        alldata = {k: v for k, v in {name: get_data(uri) for name, uri in uris.items()}.items() if v}
+        alldata = {k: v for k, v in {name: get_data(
+            uri) for name, uri in uris.items()}.items() if v}
 
         # send an entry
         client.write_points([{
@@ -151,12 +159,17 @@ def job():
         print(f"[{now}] send data")
 
         client.close()
+        errorcount = 0
+        lastsent = datetime.datetime.now()
+        return 0
     except:
         print(f"[{now}] ERROR: Not able to add new values.")
+        errorcount = errorcount + 1
         return -15
 
 
 def main():
+    global errorcount, lastsent
     print('Init EtaWatch')
     scheduler = BackgroundScheduler()
     scheduler.add_job(job, 'interval', minutes=1)
@@ -164,7 +177,7 @@ def main():
     print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
     try:
-        while True:
+        while errorcount < 10 and (datetime.datetime.now() - lastsent).seconds  < 600:
             time.sleep(2)
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown()
