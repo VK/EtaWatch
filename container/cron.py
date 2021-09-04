@@ -179,6 +179,7 @@ def main():
     try:
         while errorcount < 10 and (datetime.datetime.now() - lastsent).seconds  < 600:
             time.sleep(2)
+        os._exit()
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown()
 
