@@ -5,6 +5,7 @@ from logging import error
 
 # to run a permanent job
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 import time
 
 # to load the current variables from eta
@@ -172,13 +173,19 @@ def main():
     global errorcount, lastsent
     print('Init EtaWatch')
     scheduler = BackgroundScheduler()
-    scheduler.add_job(job, 'interval', minutes=1)
+    scheduler.add_job(job, trigger='cron', minute='*/1')
     scheduler.start()
     print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
+
+    def error_listener(event):
+        if event.exception:
+            os._exit()
+    scheduler.add_listener(error_listener, EVENT_JOB_ERROR)    
+
     try:
-        while errorcount < 10 and (datetime.datetime.now() - lastsent).seconds  < 600:
-            time.sleep(2)
+        while errorcount < 10 and (datetime.datetime.now() - lastsent).seconds  < 120:
+            time.sleep(10)
         os._exit()
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown()

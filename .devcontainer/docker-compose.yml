@@ -1,0 +1,31 @@
+version: '3.2'
+
+services:
+
+  grafana:
+      image: grafana/grafana
+      ports:
+          - 3000:3000
+      volumes:
+          - ../grafana:/var/lib/grafana
+
+  influxdb:
+      image: influxdb
+      volumes:
+          - ../influxdb:/var/lib/influxdb/
+
+
+
+  etawatch:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+
+    volumes:
+      - ../container:/app:cached
+    environment:
+      - ETA_URL=http://eta.fritz.box:8080
+      - INFLUX_HOST=influxdb      
+      
+    command: sleep infinity
+
