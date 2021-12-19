@@ -177,19 +177,20 @@ def main():
     scheduler.start()
     print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
-
     def error_listener(event):
         if event.exception:
             os._exit()
-    scheduler.add_listener(error_listener, EVENT_JOB_ERROR)    
+    scheduler.add_listener(error_listener, EVENT_JOB_ERROR)
 
+    upcount = 1500
     try:
-        while errorcount < 10 and (datetime.datetime.now() - lastsent).seconds  < 120:
+        while errorcount < 10 and (datetime.datetime.now() - lastsent).seconds < 120 and upcount > 0:
+            print(upcount)
+            upcount = upcount - 1
             time.sleep(10)
         os._exit()
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown()
-
 
 
 if __name__ == "__main__":
