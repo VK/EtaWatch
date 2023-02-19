@@ -5,7 +5,7 @@ from logging import error
 
 # to run a permanent job
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
+from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR, EVENT_JOB_MAX_INSTANCES
 import time
 
 # to load the current variables from eta
@@ -181,6 +181,7 @@ def main():
         if event.exception:
             os._exit()
     scheduler.add_listener(error_listener, EVENT_JOB_ERROR)
+    scheduler.add_listener(error_listener, EVENT_JOB_MAX_INSTANCES)
 
     upcount = 1500
     try:
