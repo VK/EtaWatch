@@ -178,8 +178,8 @@ def main():
     print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
 
     def error_listener(event):
-        if event.exception:
-            os._exit()
+        #if event.exception:
+        os._exit()
     scheduler.add_listener(error_listener, EVENT_JOB_ERROR)
     scheduler.add_listener(error_listener, EVENT_JOB_MAX_INSTANCES)
 
