@@ -179,7 +179,7 @@ def main():
 
     def error_listener(event):
         #if event.exception:
-        os._exit()
+        os._exit(0)
     scheduler.add_listener(error_listener, EVENT_JOB_ERROR)
     scheduler.add_listener(error_listener, EVENT_JOB_MAX_INSTANCES)
 
@@ -189,7 +189,7 @@ def main():
             print(upcount)
             upcount = upcount - 1
             time.sleep(10)
-        os._exit()
+        os._exit(0)
     except (KeyboardInterrupt, SystemExit):
         scheduler.shutdown()
 
